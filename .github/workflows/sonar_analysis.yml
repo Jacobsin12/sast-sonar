@@ -25,10 +25,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
-with:
           args: >
             -Dsonar.projectKey=mi-proyecto-gestion-sw
-            -Dsonar.qualitygate.wait=true
             -Dsonar.sources=.
-            -Dsonar.language=py
             -Dsonar.python.version=3
+            -Dsonar.qualitygate.wait=true
