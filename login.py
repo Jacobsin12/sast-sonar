@@ -24,4 +24,4 @@ if __name__ == "__main__":
     if login_seguro(user, pw):
         print("Acceso concedido.")
     else:
-        print("Acceso denegado.")
+        print("Acceso denegadoo.")
