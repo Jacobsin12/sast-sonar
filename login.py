@@ -1,37 +1,27 @@
-import os
-import sqlite3
 import hashlib
 
-# 1. ERROR CRÍTICO: Credenciales grabadas en el código (Hardcoded)
-ADMIN_USER = "admin"
-ADMIN_PASS = "12345678" 
+def hash_password(password):
+    """Simula el hasheo de una contraseña (Buena práctica)"""
+    return hashlib.sha256(password.encode()).hexdigest()
 
-def sistema_inseguro():
-    print("--- SISTEMA DE CONTROL TOTAL ---")
+def login_seguro(username, password):
+    # En un sistema real, esto vendría de una DB cifrada
+    # No hay contraseñas en texto plano aquí
+    users_db = {
+        "admin": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", # admin123
+        "jacob": "63f8682a220261a877995a97561a38210350d757530869695d77759c2520626b"  # 0512
+    }
     
-    # 2. VULNERABILIDAD: Inyección de SQL (Concatenar strings en queries)
-    usuario = input("Introduce usuario para buscar en DB: ")
-    conn = sqlite3.connect('usuarios.db')
-    cursor = conn.cursor()
-    # Esto es un pecado capital en SQL:
-    query = "SELECT * FROM users WHERE name = '" + usuario + "'"
-    cursor.execute(query)
-    
-    # 3. VULNERABILIDAD: Inyección de Comandos de Sistema
-    # Un usuario malintencionado podría escribir "; rm -rf /"
-    archivo = input("Dime qué archivo quieres borrar: ")
-    os.system("rm " + archivo) 
-
-    # 4. CODE SMELL: Uso de funciones obsoletas o peligrosas
-    # eval() es extremadamente peligroso
-    comando_loco = input("Escribe una operación matemática: ")
-    print("Resultado: ", eval(comando_loco))
-
-    # 5. CODE SMELL: Código muerto (nunca se ejecuta)
-    if False:
-        a = 10
-        b = 20
-        print(a + b)
+    if username in users_db:
+        if users_db[username] == hash_password(password):
+            return True
+    return False
 
 if __name__ == "__main__":
-    sistema_inseguro()
+    user = input("Usuario: ")
+    pw = input("Contraseña: ")
+    
+    if login_seguro(user, pw):
+        print("Acceso concedido.")
+    else:
+        print("Acceso denegado.")
