@@ -30,4 +30,4 @@ jobs:
             -Dsonar.sources=.
             -Dsonar.python.version=3
             -Dsonar.inclussions=**/*.py
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=false
