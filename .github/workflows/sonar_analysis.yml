@@ -28,4 +28,3 @@ jobs:
           args: >
             -Dsonar.projectKey=mi-proyecto-gestion-sw
             -Dsonar.sources=.
-            -Dsonar.python.version=3
