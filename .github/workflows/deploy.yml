@@ -29,6 +29,17 @@ jobs:
           args: >
             -Dsonar.projectKey=mi-proyecto-gestion-sw
             -Dsonar.sources=.
+            -Dsonar.scanner.metadataFilePath=report-task.txt
+
+      # ESTA ES LA PIEZA CLAVE: Obliga a fallar si el Quality Gate no pasa
+      - name: Verificar Quality Gate de SonarQube
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          scanMetadataReportFile: report-task.txt
 
   # 2. ETAPA: Prueba de Rendimiento (K6)
   performance-test:
