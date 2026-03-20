@@ -1,11 +1,13 @@
 global:
-  scrape_interval: 10s
+  scrape_interval: 10s # Recolectar datos cada 10 segundos
 
 scrape_configs:
+  # Trabajo 1: Monitorea el hardware del servidor de GCP
   - job_name: 'servidor'
     static_configs:
       - targets: ['node-exporter:9100']
 
+  # Trabajo 2: Monitorea tu aplicación Node.js
   - job_name: 'aplicacion_nodejs'
     static_configs:
       - targets: ['app-node:3000']

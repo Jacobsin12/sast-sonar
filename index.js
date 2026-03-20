@@ -1,6 +1,6 @@
 const express = require('express');
 const client = require('prom-client');
-const path = require('path'); // Requerido para manejar carpetas
+const path = require('path');
 const app = express();
 const port = 3000;
 
@@ -11,13 +11,26 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // --- CONFIGURACIÓN DE MÉTRICAS ---
-client.collectDefaultMetrics();
+client.collectDefaultMetrics(); // Métricas de Node.js (RAM/CPU)
 
+// Métrica 1: Contador de peticiones (Counter)
 const httpRequestCounter = new client.Counter({
   name: 'http_requests_total',
   help: 'Total de peticiones HTTP procesadas',
   labelNames: ['metodo', 'ruta', 'estado_http'],
 });
+
+// Métrica 2: Usuarios activos (Gauge) - REQUERIDO POR LAB
+const activeUsersGauge = new client.Gauge({
+  name: 'active_users_current',
+  help: 'Número actual de usuarios activos simulados'
+});
+
+// SIMULACIÓN DE USUARIOS: Cambia cada 5 segundos para que veas movimiento en Grafana
+setInterval(() => {
+  const randomUsers = Math.floor(Math.random() * 50) + 10; // Entre 10 y 60 usuarios
+  activeUsersGauge.set(randomUsers);
+}, 5000);
 
 // --- MIDDLEWARE PARA CONTAR PETICIONES ---
 app.use((req, res, next) => {
@@ -33,9 +46,8 @@ app.get('/metrics', async (req, res) => {
   res.send(await client.register.metrics());
 });
 
-// --- RUTA PRINCIPAL (Ahora renderiza el HTML) ---
+// --- RUTA PRINCIPAL ---
 app.get('/', (req, res) => {
-  // Aquí puedes pasar variables a tu HTML si quieres
   res.render('index', { 
     status: 'ONLINE', 
     ip_servidor: '34.51.110.74' 
@@ -43,5 +55,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`App escuchando en el puerto ${port} con interfaz gráfica 🚀`);
+  console.log(`Servidor de monitoreo corriendo en puerto ${port} 🚀`);
 });
