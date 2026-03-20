@@ -4,51 +4,74 @@
     <%- include('partials/header') %>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg glass-card mt-3 mx-3 p-3">
+    <div id="tsparticles"></div>
+
+    <nav class="navbar navbar-expand-lg glass-panel mt-3 mx-3 p-3">
         <div class="container-fluid">
-            <span class="navbar-brand fw-bold neon-text">SONAR_CORE</span>
+            <span class="navbar-brand fw-bold">
+                <i class='bx bx-pulse'></i> SONAR_CORE_v1.0
+            </span>
             <div class="d-flex align-items-center">
-                <span class="text-muted me-3">Bienvenido, <%= user %></span>
-                <a href="/login" class="btn btn-outline-light btn-sm">Salir</a>
+                <span class="text-muted me-3 small">[ USR: <%= user %> ]</span>
+                <a href="/login" class="btn btn-outline-tech btn-sm">
+                    <i class='bx bx-log-out'></i>
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container-fluid p-4">
-        <h1 class="fw-bold animate-text mb-4">Estado del Sistema</h1>
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="fw-bold mb-0 text-neon-cyan">Estado del Sistema</h1>
+            <span class="badge bg-success badge-tech ms-3 neon-pulse">ONLINE</span>
+        </div>
 
         <div class="row g-4">
-            <div class="col-md-6 animate-card">
-                <div class="card glass-card h-100 p-4">
-                    <h3>📊 Infraestructura</h3>
-                    <p class="text-muted">Enlaces directos a los motores de observabilidad.</p>
-                    <div class="d-grid gap-2 mt-4">
-                        <a href="/metrics" target="_blank" class="btn btn-outline-light">Métricas RAW</a>
-                        <a href="http://34.51.110.74:3001" target="_blank" class="btn btn-neon neon-pulse">Grafana Global</a>
+            <div class="col-md-6">
+                <div class="card glass-panel h-100 p-4">
+                    <h3 class="text-neon-cyan">
+                        <i class='bx bx-server'></i> Infraestructura
+                    </h3>
+                    <p class="text-muted small">Motores de observabilidad de hardware.</p>
+                    <div class="d-grid gap-3 mt-4">
+                        <a href="/metrics" target="_blank" class="btn btn-outline-tech btn-lg">
+                            <i class='bx bx-code-block'></i> Métricas RAW
+                        </a>
+                        <a href="http://34.51.110.74:3001" target="_blank" class="btn btn-tech-pink btn-lg">
+                            <i class='bx bx-line-chart'></i> Grafana Global
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6 animate-card">
-                <div class="card glass-card h-100 p-4">
-                    <h3>🛠️ Inventario Ferretería (Simulado)</h3>
-                    <table class="table table-dark table-striped table-hover mt-3 small">
-                        <thead><tr><th>ID</th><th>Producto</th><th>Stock</th><th>Estado</th></tr></thead>
-                        <tbody>
-                            <% productos.forEach(p => { %>
-                                <tr>
-                                    <td><%= p.id %></td>
-                                    <td><%= p.nombre %></td>
-                                    <td><%= p.stock %></td>
-                                    <td>
-                                        <span class="badge <%= p.estado === 'OK' ? 'bg-success' : 'bg-warning' %>">
-                                            <%= p.estado %>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
+            <div class="col-md-6">
+                <div class="card glass-panel h-100 p-4">
+                    <h3 class="text-neon-cyan">
+                        <i class='bx bx-wrench'></i> Inventario Ferretería
+                    </h3>
+                    <p class="text-muted small">Estado actual de la base de datos.</p>
+                    
+                    <div class="table-responsive mt-3">
+                        <table class="table table-tech table-sm small">
+                            <thead>
+                                <tr><th>ID</th><th>Producto</th><th>Stock</th><th>Estado</th></tr>
+                            </thead>
+                            <tbody>
+                                <% productos.forEach(p => { %>
+                                    <tr>
+                                        <td>#<%= p.id %></td>
+                                        <td class="text-white fw-bold"><%= p.nombre %></td>
+                                        <td><%= p.stock %></td>
+                                        <td>
+                                            <span class="badge badge-tech <%= p.estado === 'OK' ? 'bg-success' : 'bg-warning text-dark' %>">
+                                                <%= p.estado %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
