@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: jacobsin12/sast-sonar
 
 jobs:
-  # 1. ETAPA: Análisis de Calidad (Relajamos el Quality Gate para que no te bloquee el despliegue ahora)
+  # 1. ETAPA: Análisis de Calidad (SonarQube)
   quality-analysis:
     name: Análisis Estático (SonarQube)
     runs-on: ubuntu-latest
@@ -28,11 +28,8 @@ jobs:
           args: >
             -Dsonar.projectKey=mi-proyecto-gestion-sw
             -Dsonar.sources=.
-            
-      # Quitamos temporalmente el "Quality Gate Action" para que si Sonar detecta 
-      # "bugs" menores, NO te bloquee el despliegue del monitoreo.
 
-  # 2. ETAPA: Prueba de Rendimiento
+  # 2. ETAPA: Prueba de Rendimiento (K6)
   performance-test:
     name: Pruebas de Carga (K6)
     needs: quality-analysis
@@ -40,12 +37,13 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
+
       - name: Ejecución de k6
         uses: grafana/k6-action@v0.3.1
         with:
           filename: script_k6.js
 
-  # 3. ETAPA: Empaquetado
+  # 3. ETAPA: Empaquetado (Docker)
   build-and-push:
     name: Empaquetado en Docker y GHCR
     needs: performance-test
@@ -56,12 +54,14 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
-      - name: Login en GHCR
+
+      - name: Login en GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Construir y Subir Imagen
         uses: docker/build-push-action@v5
         with:
@@ -82,20 +82,29 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. Asegurar que la carpeta del proyecto existe
+            if [ ! -d "sast-sonar" ]; then
+              git clone https://github.com/Jacobsin12/sast-sonar.git
+            fi
             cd ~/sast-sonar
-            # Login para bajar la imagen
+
+            # 2. Actualizar archivos de configuración (.yml e index.js)
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 3. Login en GHCR para poder bajar la imagen privada
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Traer cambios de archivos (como prometheus.yml o docker-compose.yml)
-            git pull origin main
-            
-            # Bajar la imagen nueva
+            # 4. Descargar la versión más reciente de la imagen
             docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
-            # ELIMINAR el contenedor viejo manual (el del puerto 80) para que no choque
+            # 5. Limpiar contenedores viejos manuales (evitar conflictos de puertos)
             docker stop my-node-app || true
             docker rm my-node-app || true
             
-            # REINICIAR TODO EL COMBO (App + Grafana + Prometheus)
-            docker-compose down
+            # 6. Reiniciar todo el ecosistema de monitoreo
+            docker-compose down || true
             docker-compose up -d
+            
+            # 7. Limpieza de imágenes huérfanas
+            docker image prune -f
