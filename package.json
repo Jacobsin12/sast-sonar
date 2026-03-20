@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "ejs": "^5.0.1",
     "express": "^4.22.1",
     "prom-client": "^15.1.3"
   },

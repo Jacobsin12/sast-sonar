@@ -1,12 +1,17 @@
 const express = require('express');
-const client = require('prom-client'); // Cliente de Prometheus
+const client = require('prom-client');
+const path = require('path'); // Requerido para manejar carpetas
 const app = express();
 const port = 3000;
 
 app.disable('x-powered-by');
 
+// --- CONFIGURACIÓN DE VISTAS (EJS) ---
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // --- CONFIGURACIÓN DE MÉTRICAS ---
-client.collectDefaultMetrics(); // Métricas de RAM/CPU del contenedor
+client.collectDefaultMetrics();
 
 const httpRequestCounter = new client.Counter({
   name: 'http_requests_total',
@@ -28,10 +33,15 @@ app.get('/metrics', async (req, res) => {
   res.send(await client.register.metrics());
 });
 
+// --- RUTA PRINCIPAL (Ahora renderiza el HTML) ---
 app.get('/', (req, res) => {
-  res.send('¡Servidor funcionando y siendo monitoreado! 🚀');
+  // Aquí puedes pasar variables a tu HTML si quieres
+  res.render('index', { 
+    status: 'ONLINE', 
+    ip_servidor: '34.51.110.74' 
+  });
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`App escuchando en el puerto ${port}`);
+  console.log(`App escuchando en el puerto ${port} con interfaz gráfica 🚀`);
 });
