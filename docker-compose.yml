@@ -1,15 +1,14 @@
 version: '3.8'
 
 services:
-  # 1. Tu Aplicación (La que ya pasó por Sonar y K6)
   app-node:
+    build: .                  # VITAL: Construye usando archivos locales
     image: ghcr.io/jacobsin12/sast-sonar:main
     container_name: app-node
     ports:
       - "3000:3000"
     restart: always
 
-  # 2. El Agente que lee el hardware del servidor (CPU, RAM, Disco)
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -25,7 +24,6 @@ services:
       - "9100:9100"
     restart: always
 
-  # 3. La Base de Datos de Métricas (El recolector)
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -35,12 +33,11 @@ services:
       - "9090:9090"
     restart: always
 
-  # 4. El Visualizador Gráfico (Grafana)
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3001:3000" # Entraremos por el puerto 3001
+      - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
