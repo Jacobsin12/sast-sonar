@@ -163,3 +163,12 @@ body {
     border-radius: 2px;
     padding: 5px 10px;
 }
+.table, .table > :not(caption) > * > * {
+    background-color: transparent !important; /* MATA EL BLANCO DE BOOTSTRAP */
+    box-shadow: none !important;
+}
+
+.table-responsive {
+    background-color: transparent !important;
+    border: none !important;
+}
