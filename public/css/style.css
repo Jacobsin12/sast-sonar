@@ -1,171 +1,20 @@
-/* public/css/style.css */
-
-/* Fuentes Tech de Google */
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@300;400&display=swap');
-
-:root {
-    --bg-dark: #050509; /* Fondo casi negro profundo */
-    --tech-cyan: #00f2fe; /* Cian Neón */
-    --tech-purple: #4facfe; /* Azul Tech */
-    --tech-pink: #ff0055; /* Rosa Neón para alertas/botones */
-    
-    --glass-bg: rgba(10, 10, 20, 0.6); /* Fondo de tarjeta muy oscuro y traslúcido */
-    --glass-border: rgba(0, 242, 254, 0.15); /* Borde Cian muy sutil */
-    
-    --font-header: 'Oswald', sans-serif;
-    --font-mono: 'Roboto Mono', monospace;
-}
-
-body {
-    background-color: var(--bg-dark);
-    color: #e0e0e0;
-    font-family: var(--font-mono);
-    margin: 0;
-    overflow-x: hidden;
-    min-height: 100vh;
-}
-
-/* --- CONTENEDOR DE PARTÍCULAS DE FONDO --- */
-#tsparticles {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1; /* Detrás de todo */
-}
-
-/* --- GLASSMORPHISM MEJORADO --- */
-.glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 4px; /* Menos redondeado, más cuadrado/tech */
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Efecto de 'escáner' al pasar el mouse (hover) */
-.glass-panel:hover {
-    border: 1px solid rgba(0, 242, 254, 0.4);
-    box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
-}
-
-/* Decoración tech en la esquina superior */
-.glass-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid var(--tech-cyan);
-    border-left: 2px solid var(--tech-cyan);
-}
-
-/* --- TÍTULOS Y TEXTO NEÓN --- */
-h1, h2, h3, .navbar-brand {
-    font-family: var(--font-header);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #fff;
-}
-
-.text-neon-cyan {
-    color: var(--tech-cyan);
-    text-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
-}
-
-.navbar-brand {
-    color: var(--tech-cyan) !important;
-}
-
-/* --- BOTONES NEÓN TIPO IMAGEN 9 --- */
-.btn-tech-pink {
-    background: transparent;
-    border: 2px solid var(--tech-pink);
-    color: var(--tech-pink);
-    font-family: var(--font-header);
-    text-transform: uppercase;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
-}
-
-.btn-tech-pink:hover {
-    background: var(--tech-pink);
-    color: #fff;
-    box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
-    transform: translateY(-1px);
-}
-
-.btn-outline-tech {
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--text-muted);
-}
-.btn-outline-tech:hover {
-    border-color: var(--tech-cyan);
-    color: var(--tech-cyan);
-    background: rgba(0, 242, 254, 0.05);
-}
-
-/* --- INPUTS DE LOGIN TIPO IMAGEN 6 --- */
-.tech-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--glass-border);
-    color: var(--tech-cyan);
-    border-radius: 2px;
-    font-family: var(--font-mono);
-}
-
-.tech-input:focus {
-    background: rgba(0, 0, 0, 0.5);
-    border-color: var(--tech-cyan);
-    box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
-    color: #fff;
-}
-
-/* --- ICONOS (Boxicons) --- */
-i.bx {
-    font-size: 1.3rem;
-    vertical-align: middle;
-    margin-right: 8px;
-    color: var(--tech-purple);
-}
-
-/* --- TABLAS TECH --- */
+/* AL FINAL DE public/css/style.css */
 .table-tech {
-    border-collapse: separate;
-    border-spacing: 0 5px;
-}
-
-.table-tech thead th {
-    font-family: var(--font-header);
-    color: var(--tech-cyan);
-    border: none;
-    text-transform: uppercase;
-    font-size: 0.8rem;
+    background: transparent !important;
 }
 
 .table-tech tbody tr {
-    background: rgba(255,255,255, 0.02);
-    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(0, 242, 254, 0.1) !important;
 }
 
-.table-tech tbody td {
-    border: none;
-    padding: 12px;
-    color: #ccc;
+.table-tech td {
+    color: #00f2fe !important; /* Texto Cian Neón para que resalte */
+    background: transparent !important;
+    border: none !important;
 }
 
-/* Badges Tech */
-.badge-tech {
-    font-family: var(--font-header);
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    border-radius: 2px;
+.table-tech thead th {
+    color: #ff0055 !important; /* Títulos en Rosa Neón */
+    border-bottom: 1px solid #ff0055 !important;
 }
