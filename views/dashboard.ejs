@@ -8,7 +8,7 @@
 
     <nav class="navbar navbar-expand-lg glass-panel mt-3 mx-3 p-3">
         <div class="container-fluid">
-            <span class="navbar-brand fw-bold">
+            <span class="navbar-brand fw-bold text-neon-cyan">
                 <i class='bx bx-pulse'></i> SONAR_CORE_v1.0
             </span>
             <div class="d-flex align-items-center">
@@ -23,7 +23,7 @@
     <div class="container-fluid p-4">
         <div class="d-flex align-items-center mb-4">
             <h1 class="fw-bold mb-0 text-neon-cyan">Estado del Sistema</h1>
-            <span class="badge bg-success badge-tech ms-3 neon-pulse">ONLINE</span>
+            <span class="badge bg-success badge-tech ms-3">ONLINE</span>
         </div>
 
         <div class="row g-4">
@@ -37,7 +37,7 @@
                         <a href="/metrics" target="_blank" class="btn btn-outline-tech btn-lg">
                             <i class='bx bx-code-block'></i> Métricas RAW
                         </a>
-                        <a href="http://34.51.110.74:3001" target="_blank" class="btn btn-tech-pink btn-lg">
+                        <a href="http://34.51.110.74:3001" target="_blank" class="btn btn-tech-pink">
                             <i class='bx bx-line-chart'></i> Grafana Global
                         </a>
                     </div>
@@ -61,7 +61,7 @@
                                     <tr>
                                         <td>#<%= p.id %></td>
                                         <td class="text-white fw-bold"><%= p.nombre %></td>
-                                        <td><%= p.stock %></td>
+                                        <td class="text-neon-cyan"><%= p.stock %></td>
                                         <td>
                                             <span class="badge badge-tech <%= p.estado === 'OK' ? 'bg-success' : 'bg-warning text-dark' %>">
                                                 <%= p.estado %>

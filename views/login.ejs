@@ -2,35 +2,34 @@
 <html lang="es">
 <head>
     <%- include('partials/header') %>
-    <style>
-        /* Estilo específico para centrar el login y poner un icono */
-        .login-icon { font-size: 3rem; color: rgba(255,255,255,0.2); }
-    </style>
 </head>
 <body>
+    <div id="tsparticles"></div>
+
     <div class="container d-flex align-items-center justify-content-center min-vh-100">
-        <div class="col-md-5 col-lg-4 animate-card">
-            <div class="card glass-card p-5 text-center">
-                <div class="login-icon mb-4">
-                    <i class="bi bi-shield-lock"></i> </div>
-                <h2 class="fw-bold mb-4">Acceso Seguro</h2>
+        <div class="col-md-5 col-lg-4">
+            <div class="card glass-panel p-5 text-center">
+                <div class="mb-4">
+                    <i class='bx bx-shield-quarter text-neon-cyan' style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="fw-bold mb-4 text-neon-cyan">Acceso Seguro</h2>
                 
                 <form action="/login" method="POST">
                     <div class="mb-3 text-start">
                         <label class="form-label text-muted small">Email de Ingeniero</label>
-                        <input type="email" name="email" class="form-control glass-input" placeholder="admin@sonar.com" required>
+                        <input type="email" name="email" class="form-control tech-input" placeholder="admin@sonar.com" required>
                     </div>
                     <div class="mb-4 text-start">
                         <label class="form-label text-muted small">Contraseña</label>
-                        <input type="password" name="password" class="form-control glass-input" placeholder="••••••••" required>
+                        <input type="password" name="password" class="form-control tech-input" placeholder="••••••••" required>
                     </div>
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-neon neon-pulse">Entrar al Sistema</button>
+                        <button type="submit" class="btn btn-tech-pink">Entrar al Sistema</button>
                     </div>
                 </form>
                 
                 <div class="mt-4 text-muted small">
-                    Demo user: admin@sonar.com / sonar123
+                    [ SYS_READY: admin@sonar.com / sonar123 ]
                 </div>
             </div>
         </div>
