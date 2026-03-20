@@ -1,19 +1,27 @@
 FROM node:18-slim
 
+# Creamos el directorio de trabajo
 WORKDIR /app
 
+# Copiamos archivos de dependencias
 COPY package*.json ./
 
-# Forzamos la instalación de la librería de métricas
-RUN npm install prom-client && npm install --only=production
+# Instalamos las dependencias (agregué ejs y path por si acaso)
+RUN npm install prom-client ejs path && npm install --only=production
 
-COPY --chown=node:node . .
+# COPIAMOS TODO EL PROYECTO (Incluyendo la nueva carpeta /public y /views)
+COPY . .
 
-RUN chmod -R 555 /app && \
-    chmod -R 777 /app/node_modules 
+# AJUSTE DE PERMISOS: 
+# 1. El usuario 'node' debe ser dueño de la carpeta para leer los estáticos
+RUN chown -R node:node /app
+
+# 2. Permisos de lectura para que el servidor web pueda servir el CSS/JS
+RUN chmod -R 755 /app
 
 USER node
 
 EXPOSE 3000
 
+# Comando de arranque
 CMD ["node", "index.js"]
