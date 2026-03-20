@@ -1,22 +1,19 @@
 FROM node:18-slim
 
-# Creamos el directorio y le damos permisos al usuario node
 WORKDIR /app
 
-# Copiamos archivos de dependencias
+# 1. Copiamos los archivos de dependencias
 COPY package*.json ./
 
-# Instalamos dependencias y limpiamos caché para que sea ligero
-RUN npm install --only=production
+# 2. INSTALAMOS PROM-CLIENT EXPLÍCITAMENTE (Para asegurar que esté)
+RUN npm install prom-client && npm install --only=production
 
-# Copiamos el resto del código y cambiamos el dueño a node
+# 3. Copiamos el resto del código
 COPY --chown=node:node . .
 
-# --- LA CORRECCIÓN MÁGICA ---
-# Quitamos permisos de escritura para que el usuario node solo pueda LEER
+# 4. Ajustamos permisos (Tu "Corrección Mágica")
 RUN chmod -R 555 /app && \
     chmod -R 777 /app/node_modules 
-# Nota: node_modules a veces necesita permisos, pero el código fuente (.js) no.
 
 USER node
 
