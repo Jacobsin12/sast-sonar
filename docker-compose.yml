@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   app-node:
-    build: .                  # VITAL: Construye usando archivos locales
-    image: ghcr.io/jacobsin12/sast-sonar:main
+    build: .
+    image: ghcr.io/jacobsin12/sast-sonar:latest
     container_name: app-node
     ports:
       - "3000:3000"
@@ -29,6 +29,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus # <--- GUARDA EL HISTORIAL DE DATOS
     ports:
       - "9090:9090"
     restart: always
@@ -36,6 +37,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana # <--- GUARDA TUS DASHBOARDS Y CONEXIONES
     ports:
       - "3001:3000"
     environment:
@@ -43,3 +46,8 @@ services:
     depends_on:
       - prometheus
     restart: always
+
+# --- ESTA PARTE ES LA QUE TE FALTABA PARA QUE NO SE BORRE NADA ---
+volumes:
+  prometheus_data:
+  grafana_data:
