@@ -1,5 +1,4 @@
-#!/bin/sh
-# switch_env.sh
+
 # Permite alternar entre la configuración "blue" y "green" usando enlaces simbólicos.
 
 if [ "$#" -ne 1 ]; then
