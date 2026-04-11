@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    
+    location / {
+        proxy_pass http://${APP_TARGET_IP}:${APP_TARGET_PORT};
+        
+        # Identificación de Tráfico solicitada por la rúbrica
+        add_header X-Deployment-Color "${DEPLOYMENT_COLOR}" always;
+    }
+}
