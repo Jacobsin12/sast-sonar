@@ -117,7 +117,7 @@ jobs:
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             
             # Comando de respaldo para asegurar que el Inode del Symlink se refresque
-            sudo docker exec nginx_proxy nginx -s reload
+            sudo docker restart nginx_proxy
             
             # 7. Actualizar estado del despliegue
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
