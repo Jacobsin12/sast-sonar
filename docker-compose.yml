@@ -1,12 +1,23 @@
 version: '3.8'
 
 services:
-  app-node:
-    build: .
+  app-blue:
     image: ghcr.io/jacobsin12/sast-sonar:latest
-    container_name: app-node
+    container_name: app-blue
+    restart: always
+
+  app-green:
+    image: ghcr.io/jacobsin12/sast-sonar:latest
+    container_name: app-green
+    restart: always
+
+  nginx_proxy:
+    image: nginx:alpine
+    container_name: nginx_proxy
     ports:
-      - "3000:3000"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: always
 
   node-exporter:
@@ -29,7 +40,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus # <--- GUARDA EL HISTORIAL DE DATOS
+      - prometheus_data:/prometheus 
     ports:
       - "9090:9090"
     restart: always
@@ -38,7 +49,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     volumes:
-      - grafana_data:/var/lib/grafana # <--- GUARDA TUS DASHBOARDS Y CONEXIONES
+      - grafana_data:/var/lib/grafana 
     ports:
       - "3001:3000"
     environment:
@@ -47,7 +58,6 @@ services:
       - prometheus
     restart: always
 
-# --- ESTA PARTE ES LA QUE TE FALTABA PARA QUE NO SE BORRE NADA ---
-volumes:
+
   prometheus_data:
   grafana_data:

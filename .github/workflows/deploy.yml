@@ -63,7 +63,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   deploy:
-    name: Despliegue en Servidor
+    name: Despliegue Blue/Green en Servidor
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +77,39 @@ jobs:
             cd ~/sast-sonar
             git fetch origin main
             git reset --hard origin/main
+            
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
-            sudo docker-compose up -d --build
+            
+            if [ ! -f current_deploy.env ]; then
+              echo "ACTIVE_ENV=blue" > current_deploy.env
+            fi
+            
+            source current_deploy.env
+            echo "Entorno activo: $ACTIVE_ENV"
+            
+            if [ "$ACTIVE_ENV" = "blue" ]; then
+              TARGET_ENV="app-green"
+              NEXT_ACTIVE="green"
+            else
+              TARGET_ENV="app-blue"
+              NEXT_ACTIVE="blue"
+            fi
+            
+            echo "Desplegando hacia objetivo: $TARGET_ENV"
+            
+            sudo docker-compose up -d --no-deps $TARGET_ENV
+            
+            echo "Esperando 5s para inicializar app..."
+            sleep 5
+            
+            export TARGET_ENV=$TARGET_ENV
+            envsubst < nginx.conf.template > nginx.conf
+            
+            sudo docker exec nginx_proxy nginx -s reload
+            
+            echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
+            echo "Tráfico enrutado a: $NEXT_ACTIVE"
+            
             sudo docker image prune -f
+
