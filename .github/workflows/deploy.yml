@@ -76,18 +76,22 @@ jobs:
           script: |
             set -e
             cd ~/sast-sonar
+            
+            # 1. Actualizar repositorio local
             git fetch origin main
             git reset --hard origin/main
             
+            # 2. Login y Pull de la imagen más reciente
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
+            # 3. Determinar ambiente objetivo
             if [ ! -f current_deploy.env ]; then
               echo "ACTIVE_ENV=blue" > current_deploy.env
             fi
             
             source current_deploy.env
-            echo "Entorno activo: $ACTIVE_ENV"
+            echo "Entorno actualmente activo: $ACTIVE_ENV"
             
             if [ "$ACTIVE_ENV" = "blue" ]; then
               TARGET_ENV="app-green"
@@ -97,21 +101,33 @@ jobs:
               NEXT_ACTIVE="blue"
             fi
             
-            echo "Desplegando hacia objetivo: $TARGET_ENV"
+            echo "Desplegando nueva versión en: $TARGET_ENV"
             
+            # 4. Levantar el contenedor de la nueva versión
             sudo docker-compose up -d --no-deps $TARGET_ENV
             
-            echo "Esperando 5s para inicializar app..."
+            echo "Esperando 5s para inicializar la aplicación..."
             sleep 5
             
-            # Levantamos/actualizamos Nginx para que tome los nuevos volúmenes (symlinks y scripts)
+            # 5. Asegurar que Nginx_proxy esté arriba y actualizado
             sudo docker-compose up -d nginx_proxy
             
-            # Ejecutamos el linker maestro dentro del contenedor de nginx
+            # 6. Ejecutar Linker Maestro y forzar recarga de Nginx
+            echo "Realizando Switch de tráfico a $NEXT_ACTIVE..."
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             
-            echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
-            echo "Tráfico enrutado a: $NEXT_ACTIVE"
+            # Comando de respaldo para asegurar que el Inode del Symlink se refresque
+            sudo docker exec nginx_proxy nginx -s reload
             
+            # 7. Actualizar estado del despliegue
+            echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
+            
+            # 8. Verificación final en logs (Evidencia para el reporte)
+            echo "--- VERIFICACIÓN POST-DESPLIEGUE ---"
+            echo "Ambiente configurado: $NEXT_ACTIVE"
+            echo "Header detectado por el servidor:"
+            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color"
+            
+            # 9. Limpieza de imágenes viejas
             sudo docker image prune -f
-
+            echo "Despliegue Blue/Green finalizado con éxito."
