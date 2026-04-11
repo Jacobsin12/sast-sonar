@@ -58,6 +58,6 @@ services:
       - prometheus
     restart: always
 
-
+volumes:
   prometheus_data:
   grafana_data:
