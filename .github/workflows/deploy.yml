@@ -86,11 +86,11 @@ jobs:
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
             # 3. Determinar ambiente objetivo
-            if [ ! -f current_deploy.env ]; then
-              echo "ACTIVE_ENV=blue" > current_deploy.env
+            if [ ! -f ~/.current_deploy.env ]; then
+              echo "ACTIVE_ENV=blue" > ~/.current_deploy.env
             fi
             
-            source current_deploy.env
+            source ~/.current_deploy.env
             echo "Entorno actualmente activo: $ACTIVE_ENV"
             
             if [ "$ACTIVE_ENV" = "blue" ]; then
@@ -120,7 +120,7 @@ jobs:
             sudo docker restart nginx_proxy
             
             # 7. Actualizar estado del despliegue
-            echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
+            echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
             
             # 8. Verificación final en logs (Evidencia para el reporte)
             echo "--- VERIFICACIÓN POST-DESPLIEGUE ---"
