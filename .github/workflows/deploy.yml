@@ -104,15 +104,11 @@ jobs:
             echo "Esperando 5s para inicializar app..."
             sleep 5
             
-            export TARGET_ENV=$TARGET_ENV
-            envsubst '${TARGET_ENV}' < nginx.conf.template > nginx.conf
-            
-            # Bajamos y removemos el antiguo contenedor si aún existe para evitar choque de puertos
-            sudo docker rm -f app-node || true
-            
-            # Aseguramos que el Nginx nuevo empiece a correr
+            # Levantamos/actualizamos Nginx para que tome los nuevos volúmenes (symlinks y scripts)
             sudo docker-compose up -d nginx_proxy
-            sudo docker exec nginx_proxy nginx -s reload
+            
+            # Ejecutamos el linker maestro dentro del contenedor de nginx
+            sudo docker exec nginx_proxy bash /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
             echo "Tráfico enrutado a: $NEXT_ACTIVE"
