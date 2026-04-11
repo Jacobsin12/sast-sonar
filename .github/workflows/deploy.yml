@@ -108,7 +108,7 @@ jobs:
             sudo docker-compose up -d nginx_proxy
             
             # Ejecutamos el linker maestro dentro del contenedor de nginx
-            sudo docker exec nginx_proxy bash /usr/local/bin/switch_env.sh $NEXT_ACTIVE
+            sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > current_deploy.env
             echo "Tráfico enrutado a: $NEXT_ACTIVE"
