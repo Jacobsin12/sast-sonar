@@ -1,38 +1,27 @@
 #!/bin/bash
-# The Switch - Script de Conmutación utilizando envsubst nativo
+# El Mecanismo de Conmutación (The Switch)
 
 if [ "$#" -ne 1 ]; then
-    echo "Error: Debe ingresar 'blue' o 'green'."
+    echo "Error: Se requiere el nombre del ambiente (blue o green)."
     exit 1
 fi
 
 COLOR=$1
 
-# 1. Exportar las variables necesarias
 if [ "$COLOR" == "green" ]; then
     export APP_TARGET_IP="192.168.1.20"
     export APP_TARGET_PORT="8080"
-    export DEPLOYMENT_COLOR="green"
+    export DEPLOYMENT_COLOR="Green"
 elif [ "$COLOR" == "blue" ]; then
-    export APP_TARGET_IP="192.168.1.21" # Puedes simular otra IP aquí
+    export APP_TARGET_IP="192.168.1.21"
     export APP_TARGET_PORT="8081"
-    export DEPLOYMENT_COLOR="blue"
-else
-    echo "Error: Color no válido."
-    exit 1
+    export DEPLOYMENT_COLOR="Blue"
 fi
 
-echo "Generando configuración para ambiente $COLOR (Destino: $APP_TARGET_IP:$APP_TARGET_PORT)..."
+echo "Cambiando tráfico a ambiente: $COLOR"
 
-# 2. Utilizar el comando envsubst para procesar la plantilla hacia el directorio nativo
+# 'envsubst' reemplaza las variables en la plantilla y genera el archivo real de Nginx
 envsubst '${APP_TARGET_IP} ${APP_TARGET_PORT} ${DEPLOYMENT_COLOR}' < nginx.conf.template > /etc/nginx/conf.d/default.conf
 
-# 3. Validación Crítica y Recarga
-if nginx -t; then
-    echo "✔ Validación exitosa. Recargando servicio..."
-    systemctl reload nginx
-    echo "✔ Despliegue de ambiente $COLOR completado."
-else
-    echo "✖ Error: sintaxis inválida en archivo generado. Abortando recarga."
-    exit 1
-fi
+# Validar la configuración y recargar Nginx
+nginx -t && systemctl reload nginx

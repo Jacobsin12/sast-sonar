@@ -1,10 +1,21 @@
+# nginx.conf.template
+# Este archivo define cómo Nginx redirigirá el tráfico según el entorno activo
+
+upstream backend_servers {
+    # La variable ${APP_TARGET_IP} será reemplazada por la IP del ambiente Blue o Green
+    server ${APP_TARGET_IP}:${APP_TARGET_PORT};
+}
+
 server {
     listen 80;
-    
+    server_name miprovector.com;
+
     location / {
-        proxy_pass http://${APP_TARGET_IP}:${APP_TARGET_PORT};
+        proxy_pass http://backend_servers;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
         
-        # Identificación de Tráfico solicitada por la rúbrica
-        add_header X-Deployment-Color "${DEPLOYMENT_COLOR}" always;
+        # Parámetros para el monitoreo de la aplicación
+        add_header X-Deployment-Color ${DEPLOYMENT_COLOR};
     }
 }
