@@ -16,6 +16,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         
         # Parámetros para el monitoreo de la aplicación
-        add_header X-Deployment-Color ${DEPLOYMENT_COLOR};
+        add_header X-Deployment-Color ${DEPLOYMENT_COLOR} always;
     }
 }
