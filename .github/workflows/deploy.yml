@@ -74,6 +74,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd ~/sast-sonar
             git fetch origin main
             git reset --hard origin/main
@@ -104,7 +105,7 @@ jobs:
             sleep 5
             
             export TARGET_ENV=$TARGET_ENV
-            envsubst < nginx.conf.template > nginx.conf
+            envsubst '${TARGET_ENV}' < nginx.conf.template > nginx.conf
             
             # Bajamos y removemos el antiguo contenedor si aún existe para evitar choque de puertos
             sudo docker rm -f app-node || true
