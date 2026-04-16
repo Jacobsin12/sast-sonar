@@ -6,6 +6,8 @@ services:
     container_name: app-blue
     environment:
       - PORT=8080
+    ports:
+      - "8080:8080" # Esto mapea el puerto del servidor al del contenedor
     restart: always
 
   app-green:
@@ -13,30 +15,14 @@ services:
     container_name: app-green
     environment:
       - PORT=8081
-    restart: always
-
-  nginx_proxy:
-    image: nginx:alpine
-    container_name: nginx_proxy
     ports:
-      - "80:80"
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/environments:/etc/nginx/environments:ro
-      - ./docker/nginx/switch_env.sh:/usr/local/bin/switch_env.sh:ro
+      - "8081:8081" # Esto abre el puerto 8081 hacia afuera
     restart: always
 
+  # Monitoreo se queda en Producción para ver los recursos de esta máquina
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
     ports:
       - "9100:9100"
     restart: always
@@ -57,11 +43,9 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana 
     ports:
-      - "3001:3000"
+      - "3000:3000" # Lo regresé al 3000 para que sea más fácil entrar
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      - prometheus
     restart: always
 
 volumes:
