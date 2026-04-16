@@ -13,7 +13,7 @@ jobs:
     name: Análisis Estático (SonarQube)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del repositorio
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,76 +63,73 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   deploy:
-    name: Despliegue Blue/Green en Servidor
+    name: Despliegue Blue/Green
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Deploy
+      # PASO 1: ACTUALIZAR LAS APPS EN PRODUCCIÓN
+      - name: Desplegar App en Producción
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.SERVER_HOST_PROD }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
             cd ~/sast-sonar
-            
-            # 1. Actualizar repositorio local
             git fetch origin main
             git reset --hard origin/main
             
-            # 2. Login y Pull de la imagen más reciente
+            # Login y Pull
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
-            # 3. Determinar ambiente objetivo
-            if [ ! -f ~/.current_deploy.env ]; then
-              echo "ACTIVE_ENV=blue" > ~/.current_deploy.env
-            fi
-            
+            # Lógica de ambiente
+            if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
             source ~/.current_deploy.env
-            echo "Entorno actualmente activo: $ACTIVE_ENV"
             
-            if [ "$ACTIVE_ENV" = "blue" ]; then
-              TARGET_ENV="app-green"
-              NEXT_ACTIVE="green"
-            else
-              TARGET_ENV="app-blue"
-              NEXT_ACTIVE="blue"
-            fi
+            TARGET_ENV=$([ "$ACTIVE_ENV" = "blue" ] && echo "app-green" || echo "app-blue")
             
-            echo "Desplegando nueva versión en: $TARGET_ENV"
-            
-            # 4. Limpieza preventiva (Evita el error 'Conflict: container name in use')
-            echo "Removiendo contenedor antiguo $TARGET_ENV si existe..."
+            echo "Limpiando y levantando nueva versión en Producción: $TARGET_ENV"
             sudo docker rm -f $TARGET_ENV || true
-            
-            # 5. Levantar el contenedor de la nueva versión
             sudo docker-compose up -d --no-deps $TARGET_ENV
             
-            echo "Esperando 10s para inicializar la aplicación..."
-            sleep 10
+            # Guardamos el estado para que el siguiente paso del pipeline sepa qué hacer
+            echo "NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")" > /tmp/next_env
+
+      # PASO 2: CAMBIAR EL TRÁFICO EN EL PROXY
+      - name: Switch de Tráfico en el Proxy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST_PROXY }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/sast-sonar
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Determinar qué toca activar
+            if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
+            source ~/.current_deploy.env
+            NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")
+
+            echo "Cambiando tráfico en el Proxy a: $NEXT_ACTIVE"
             
-            # 6. Asegurar que Nginx_proxy esté arriba y actualizado
+            # Asegurar que el contenedor del proxy esté limpio y arriba
+            sudo docker rm -f nginx_proxy || true
             sudo docker-compose up -d nginx_proxy
             
-            # 7. Ejecutar Linker Maestro y forzar recarga de Nginx
-            echo "Realizando Switch de tráfico a $NEXT_ACTIVE..."
-            # Asegúrate de que el script exista en la ruta mapeada del contenedor
+            # Ejecutar el switch
+            sleep 2
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
-            
-            # 8. Reinicio de Nginx para asegurar que el enlace simbólico se refresque
             sudo docker restart nginx_proxy
             
-            # 9. Actualizar estado del despliegue
+            # Actualizar persistencia del estado
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
             
-            # 10. Verificación final en logs
-            echo "--- VERIFICACIÓN POST-DESPLIEGUE ---"
-            echo "Ambiente configurado: $NEXT_ACTIVE"
-            echo "Header detectado por el servidor:"
-            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color" || echo "Header no detectado aún"
-            
-            # 11. Limpieza de imágenes viejas para ahorrar espacio
+            # Verificación final
+            echo "--- VERIFICACIÓN ---"
+            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color"
             sudo docker image prune -f
-            echo "¡Despliegue Blue/Green finalizado con éxito!"
