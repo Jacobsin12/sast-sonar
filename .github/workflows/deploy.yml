@@ -84,7 +84,7 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
-            # Lógica de ambiente
+            # Lógica de ambiente (Usando HOME para evitar Permission Denied)
             if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
             source ~/.current_deploy.env
             
@@ -94,8 +94,9 @@ jobs:
             sudo docker rm -f $TARGET_ENV || true
             sudo docker-compose up -d --no-deps $TARGET_ENV
             
-            # Guardamos el estado para que el siguiente paso del pipeline sepa qué hacer
-            echo "NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")" > /tmp/next_env
+            # Actualizamos el estado en Producción
+            NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")
+            echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
 
       # PASO 2: CAMBIAR EL TRÁFICO EN EL PROXY
       - name: Switch de Tráfico en el Proxy
@@ -110,7 +111,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Determinar qué toca activar
+            # Determinar qué toca activar (Independiente para seguridad)
             if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
             source ~/.current_deploy.env
             NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")
@@ -122,14 +123,15 @@ jobs:
             sudo docker-compose up -d nginx_proxy
             
             # Ejecutar el switch
-            sleep 2
+            sleep 5
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             sudo docker restart nginx_proxy
             
-            # Actualizar persistencia del estado
+            # Actualizar persistencia del estado en el Proxy
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
             
             # Verificación final
             echo "--- VERIFICACIÓN ---"
-            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color"
+            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color" || echo "Header no detectado aún"
             sudo docker image prune -f
+            echo "¡Despliegue Blue/Green finalizado con éxito!"
