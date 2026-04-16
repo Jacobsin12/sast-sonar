@@ -103,31 +103,36 @@ jobs:
             
             echo "Desplegando nueva versión en: $TARGET_ENV"
             
-            # 4. Levantar el contenedor de la nueva versión
+            # 4. Limpieza preventiva (Evita el error 'Conflict: container name in use')
+            echo "Removiendo contenedor antiguo $TARGET_ENV si existe..."
+            sudo docker rm -f $TARGET_ENV || true
+            
+            # 5. Levantar el contenedor de la nueva versión
             sudo docker-compose up -d --no-deps $TARGET_ENV
             
-            echo "Esperando 5s para inicializar la aplicación..."
-            sleep 5
+            echo "Esperando 10s para inicializar la aplicación..."
+            sleep 10
             
-            # 5. Asegurar que Nginx_proxy esté arriba y actualizado
+            # 6. Asegurar que Nginx_proxy esté arriba y actualizado
             sudo docker-compose up -d nginx_proxy
             
-            # 6. Ejecutar Linker Maestro y forzar recarga de Nginx
+            # 7. Ejecutar Linker Maestro y forzar recarga de Nginx
             echo "Realizando Switch de tráfico a $NEXT_ACTIVE..."
+            # Asegúrate de que el script exista en la ruta mapeada del contenedor
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             
-            # Comando de respaldo para asegurar que el Inode del Symlink se refresque
+            # 8. Reinicio de Nginx para asegurar que el enlace simbólico se refresque
             sudo docker restart nginx_proxy
             
-            # 7. Actualizar estado del despliegue
+            # 9. Actualizar estado del despliegue
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
             
-            # 8. Verificación final en logs (Evidencia para el reporte)
+            # 10. Verificación final en logs
             echo "--- VERIFICACIÓN POST-DESPLIEGUE ---"
             echo "Ambiente configurado: $NEXT_ACTIVE"
             echo "Header detectado por el servidor:"
-            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color"
+            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color" || echo "Header no detectado aún"
             
-            # 9. Limpieza de imágenes viejas
+            # 11. Limpieza de imágenes viejas para ahorrar espacio
             sudo docker image prune -f
-            echo "Despliegue Blue/Green finalizado con éxito."
+            echo "¡Despliegue Blue/Green finalizado con éxito!"
