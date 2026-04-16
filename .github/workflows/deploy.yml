@@ -67,7 +67,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # PASO 1: ACTUALIZAR LAS APPS EN PRODUCCIÓN
+      # PASO 1: ACTUALIZAR LAS APPS EN PRODUCCIÓN (Servidor A)
       - name: Desplegar App en Producción
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -80,25 +80,25 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             
-            # Login y Pull
+            # Login y Pull de la nueva imagen
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker pull ghcr.io/jacobsin12/sast-sonar:latest
             
-            # Lógica de ambiente (Usando HOME para evitar Permission Denied)
+            # Lógica de ambiente para saber cuál toca encender
             if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
             source ~/.current_deploy.env
             
             TARGET_ENV=$([ "$ACTIVE_ENV" = "blue" ] && echo "app-green" || echo "app-blue")
             
-            echo "Limpiando y levantando nueva versión en Producción: $TARGET_ENV"
-            sudo docker rm -f $TARGET_ENV || true
+            echo "Levantando nueva versión en Producción: $TARGET_ENV"
+            # Levantamos solo la app que toca sin tocar el resto
             sudo docker-compose up -d --no-deps $TARGET_ENV
             
-            # Actualizamos el estado en Producción
+            # Actualizamos el estado local en Producción
             NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
 
-      # PASO 2: CAMBIAR EL TRÁFICO EN EL PROXY
+      # PASO 2: CAMBIAR EL TRÁFICO EN EL PROXY (Servidor B)
       - name: Switch de Tráfico en el Proxy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -111,18 +111,18 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Determinar qué toca activar (Independiente para seguridad)
+            # Determinar qué toca activar en el Proxy
             if [ ! -f ~/.current_deploy.env ]; then echo "ACTIVE_ENV=blue" > ~/.current_deploy.env; fi
             source ~/.current_deploy.env
             NEXT_ACTIVE=$([ "$ACTIVE_ENV" = "blue" ] && echo "green" || echo "blue")
 
             echo "Cambiando tráfico en el Proxy a: $NEXT_ACTIVE"
             
-            # Asegurar que el contenedor del proxy esté limpio y arriba
-            sudo docker rm -f nginx_proxy || true
-            sudo docker-compose up -d nginx_proxy
+            # Asegurar que el proxy esté arriba (Usando el archivo local del servidor Proxy)
+            # Si no creaste el archivo con ese nombre, usa docker-compose up -d nginx_proxy
+            sudo docker-compose -f docker-compose-proxy.yml up -d nginx_proxy || sudo docker-compose up -d nginx_proxy
             
-            # Ejecutar el switch
+            # Ejecutar el switch dentro del contenedor
             sleep 5
             sudo docker exec nginx_proxy sh /usr/local/bin/switch_env.sh $NEXT_ACTIVE
             sudo docker restart nginx_proxy
@@ -130,8 +130,7 @@ jobs:
             # Actualizar persistencia del estado en el Proxy
             echo "ACTIVE_ENV=$NEXT_ACTIVE" > ~/.current_deploy.env
             
-            # Verificación final
+            # Verificación
             echo "--- VERIFICACIÓN ---"
-            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color" || echo "Header no detectado aún"
+            sudo docker exec nginx_proxy curl -sI localhost | grep -i "X-Deployment-Color" || echo "Check manual en navegador"
             sudo docker image prune -f
-            echo "¡Despliegue Blue/Green finalizado con éxito!"
